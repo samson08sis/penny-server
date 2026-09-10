@@ -82,16 +82,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const refresh = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      res.status(400).json({ message: "Refresh token is required" });
+      res.status(401).json({ message: "Token missing" });
       return;
     }
 
-    const storedToken = await RefreshToken.findOne({ token: refreshToken });
-    if (!storedToken) {
-      res.status(403).json({ message: "Invalid refresh token" });
+    const existingToken = await RefreshToken.findOne({ token: refreshToken });
+    if (!existingToken) {
+      res.status(403).json({ message: "Invalid token" });
       return;
     }
 
@@ -103,6 +103,6 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
 
     res.json({ accessToken: newAccessToken });
   } catch (error) {
-    res.status(403).json({ message: "Expired or invalid refresh token" });
+    res.status(403).json({ message: "Invalid or expired token" });
   }
 };
