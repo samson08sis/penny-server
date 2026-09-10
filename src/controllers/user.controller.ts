@@ -10,7 +10,7 @@ export const forgotPassword = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { email } = req.body;
+    const email = req.body?.email;
 
     if (!email) {
       res.status(400).json({ message: "Email is required" });
