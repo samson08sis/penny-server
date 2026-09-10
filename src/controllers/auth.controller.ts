@@ -5,6 +5,7 @@ import { RefreshToken } from "../models/refreshToken.model.js";
 import {
   generateAccessToken,
   generateRefreshToken,
+  TokenPayload,
   verifyRefreshToken,
 } from "../utils/tokens.js";
 
@@ -58,7 +59,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const payload = { userId: user._id.toString(), email: user.email };
+    const payload: TokenPayload = {
+      userId: user._id.toString(),
+      email: user.email,
+    };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
