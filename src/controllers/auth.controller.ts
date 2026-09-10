@@ -64,9 +64,15 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     await RefreshToken.create({ token: refreshToken, user: user._id });
 
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // (7 days)
+    });
+
     res.json({
       accessToken,
-      refreshToken,
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
