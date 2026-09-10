@@ -72,7 +72,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      path: "/auth/refresh",
+      path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000, // (7 days)
     });
 
@@ -101,12 +101,12 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
     }
 
     const decoded = verifyRefreshToken(refreshToken);
-    const newAccessToken = generateAccessToken({
+    const accessToken = generateAccessToken({
       userId: decoded.userId,
       email: decoded.email,
     });
 
-    res.json({ accessToken: newAccessToken });
+    res.json({ accessToken });
   } catch (error) {
     res.status(403).json({ message: "Invalid or expired token" });
   }
@@ -124,7 +124,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      path: "/auth/refresh",
+      path: "/",
     });
 
     res.json({ message: "Logged out successfully" });
