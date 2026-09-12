@@ -75,9 +75,15 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000, // (7 days)
     });
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 1000, // (15 mins)
+    });
 
     res.json({
-      accessToken,
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
@@ -106,6 +112,14 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       email: decoded.email,
     });
 
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 1000, // (15 mins)
+    });
+
     res.json({ accessToken });
   } catch (error) {
     res.status(403).json({ message: "Invalid or expired token" });
@@ -121,6 +135,12 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     }
 
     res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+    res.clearCookie("accessToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
