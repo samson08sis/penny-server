@@ -4,6 +4,7 @@ import {
   updatePassword,
   forgotPassword,
   resetPassword,
+  updateProfile,
 } from "../controllers/user.controller.js";
 import { authenticate } from "../middlewares/auth.js";
 
@@ -14,6 +15,7 @@ router.post("/reset-password", resetPassword);
 
 // Protected
 router.get("/me", authenticate, getMe);
-router.patch("/update-password", authenticate, updatePassword);
+router.put("/update-password", authenticate, updatePassword);
+router.patch("/profile", authenticate, updateProfile);
 
 export default router;

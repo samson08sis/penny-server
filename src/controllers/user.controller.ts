@@ -177,3 +177,43 @@ export const updatePassword = async (
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const updateProfile = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    const { name } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    if (!name) {
+      res.status(400).json({ message: "Please enter name" });
+      return;
+    }
+
+    if (name.length < 2) {
+      res
+        .status(400)
+        .json({ message: "New password must be at least 2 characters" });
+      return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    user.name = name;
+    await user.save();
+
+    res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
