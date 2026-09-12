@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  getMe,
   updatePassword,
   forgotPassword,
   resetPassword,
@@ -12,6 +13,7 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
 // Protected
+router.get("/me", authenticate, getMe);
 router.patch("/update-password", authenticate, updatePassword);
 
 export default router;

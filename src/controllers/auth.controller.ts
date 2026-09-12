@@ -80,7 +80,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 15 * 1000, // (15 mins)
+      maxAge: 60 * 15 * 1000, // (15 mins)
     });
 
     res.json({
