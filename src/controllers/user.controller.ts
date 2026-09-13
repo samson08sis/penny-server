@@ -172,7 +172,15 @@ export const updatePassword = async (
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ message: "Password updated successfully", accessToken });
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 15 * 1000,
+    });
+
+    res.json({ message: "Password updated successfully" });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
