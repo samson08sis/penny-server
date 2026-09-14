@@ -27,13 +27,43 @@ export const getExpenses = async (
     );
     const skip = (pageNum - 1) * limitNum;
 
-    const [expenses, total] = await Promise.all([
+    // Calculate current month
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [expenses, total, summaryResult] = await Promise.all([
       Expense.find(query).sort({ date: -1 }).skip(skip).limit(limitNum).lean(),
       Expense.countDocuments(query),
+      Expense.aggregate([
+        { $match: { user: userId } },
+        {
+          $group: {
+            _id: null,
+            totalExpenses: { $sum: "$amount" },
+            expenseCount: { $sum: 1 },
+            monthlyExpenses: {
+              $sum: {
+                $cond: [{ $gte: ["$date", startOfMonth] }, "$amount", 0],
+              },
+            },
+          },
+        },
+      ]),
     ]);
+
+    const summary = summaryResult[0] || {
+      totalExpenses: 0,
+      monthlyExpenses: 0,
+      expenseCount: 0,
+    };
 
     res.json({
       expenses,
+      summary: {
+        totalExpenses: summary.totalExpenses,
+        monthlyExpenses: summary.monthlyExpenses,
+        expenseCount: summary.expenseCount,
+      },
       pagination: {
         total,
         page: pageNum,
