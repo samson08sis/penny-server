@@ -1,13 +1,21 @@
 import mongoose from "mongoose";
 
+let isConnected = false;
+
 export const connectDB = async (): Promise<void> => {
+  if (isConnected) {
+    console.log("🔄 Using cached database connection");
+    return;
+  }
+
   try {
-    const connStr =
-      process.env.MONGO_URI || "mongodb://127.0.0.1:27017/pennywise";
-    await mongoose.connect(connStr);
-    console.log("🌱 Connected to MongoDB");
+    const conn = await mongoose.connect(process.env.MONGO_URI || "");
+    isConnected = conn.connections[0].readyState === 1;
+    console.log(`🍃 MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error);
+    console.error(
+      `💥 Database connection matrix failed: ${(error as Error).message}`
+    );
     process.exit(1);
   }
 };
