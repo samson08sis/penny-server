@@ -7,7 +7,6 @@ export const getExpenses = async (
 ): Promise<void> => {
   try {
     const userId = req.user?.userId;
-
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
       return;
@@ -31,38 +30,61 @@ export const getExpenses = async (
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [expenses, total, summaryResult] = await Promise.all([
+    const [expenses, total, [aggregationResult]] = await Promise.all([
       Expense.find(query).sort({ date: -1 }).skip(skip).limit(limitNum).lean(),
       Expense.countDocuments(query),
       Expense.aggregate([
         { $match: { user: userId } },
         {
-          $group: {
-            _id: null,
-            totalExpenses: { $sum: "$amount" },
-            expenseCount: { $sum: 1 },
-            monthlyExpenses: {
-              $sum: {
-                $cond: [{ $gte: ["$date", startOfMonth] }, "$amount", 0],
+          $facet: {
+            metrics: [
+              {
+                $group: {
+                  _id: null,
+                  totalExpenses: { $sum: "$amount" },
+                  expenseCount: { $sum: 1 },
+                  monthlyExpenses: {
+                    $sum: {
+                      $cond: [{ $gte: ["$date", startOfMonth] }, "$amount", 0],
+                    },
+                  },
+                },
               },
-            },
+            ],
+            categoryBreakdown: [
+              {
+                $group: {
+                  _id: "$category",
+                  total: { $sum: "$amount" },
+                },
+              },
+              { $sort: { total: -1 } },
+            ],
           },
         },
       ]),
     ]);
 
-    const summary = summaryResult[0] || {
+    const metrics = aggregationResult.metrics[0] || {
       totalExpenses: 0,
       monthlyExpenses: 0,
       expenseCount: 0,
     };
 
+    const categoryBreakdown = aggregationResult.categoryBreakdown.map(
+      (item: { _id: string; total: number }) => ({
+        category: item._id,
+        total: item.total,
+      })
+    );
+
     res.json({
       expenses,
       summary: {
-        totalExpenses: summary.totalExpenses,
-        monthlyExpenses: summary.monthlyExpenses,
-        expenseCount: summary.expenseCount,
+        totalExpenses: metrics.totalExpenses,
+        monthlyExpenses: metrics.monthlyExpenses,
+        expenseCount: metrics.expenseCount,
+        categoryBreakdown,
       },
       pagination: {
         total,
