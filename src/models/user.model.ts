@@ -6,6 +6,8 @@ export interface IUser extends Document {
   password?: string;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const userSchema = new Schema<IUser>(
