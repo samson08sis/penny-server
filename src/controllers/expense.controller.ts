@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Expense } from "../models/expense.model";
+import { Types } from "mongoose";
 
 export const getExpenses = async (
   req: Request,
@@ -7,10 +8,13 @@ export const getExpenses = async (
 ): Promise<void> => {
   try {
     const userId = req.user?.userId;
+
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
+
+    const userObjectId = new Types.ObjectId(userId);
 
     const { category, page = "1", limit = "10" } = req.query;
 
@@ -34,7 +38,7 @@ export const getExpenses = async (
       Expense.find(query).sort({ date: -1 }).skip(skip).limit(limitNum).lean(),
       Expense.countDocuments(query),
       Expense.aggregate([
-        { $match: { user: userId } },
+        { $match: { user: userObjectId } },
         {
           $facet: {
             metrics: [
