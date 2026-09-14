@@ -18,7 +18,7 @@ export const authenticate = (
   }
 
   try {
-    const decoded = verifyAccessToken(token);
+    const decoded = verifyAccessToken(token) as TokenPayload;
     req.user = decoded;
     next();
   } catch (err) {

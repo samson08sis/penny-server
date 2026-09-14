@@ -1,3 +1,5 @@
+/// <reference path="./types/express.d.ts" />
+
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./lib/db.js";
