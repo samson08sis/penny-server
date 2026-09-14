@@ -1,12 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken, TokenPayload } from "../utils/tokens.js";
 
-export interface AuthenticatedRequest extends Request {
-  user?: TokenPayload;
-}
-
 export const authenticate = (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): void => {
