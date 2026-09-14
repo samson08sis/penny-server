@@ -1,35 +1,41 @@
-import express, { Request, Response } from "express";
-import dotenv from "dotenv";
+import app from "./app.js";
 import { connectDB } from "./lib/db.js";
-import routes from "./routes";
-import cors from "cors";
-import cookieParser from "cookie-parser";
 
-dotenv.config();
-
-const app = express();
 const PORT = process.env.PORT || 4000;
-const APP_URL = process.env.APP_URL;
 
-app.use(express.json());
-app.use(cookieParser());
+if (!(process.env.NODE_ENV === "production" && process.env.VERCEL === "1")) {
+  const startServer = async () => {
+    try {
+      await connectDB();
 
-app.use(
-  cors({
-    origin: APP_URL,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+      const server = app.listen(PORT, () => {
+        console.log(
+          `🚀 Server running in ${
+            process.env.NODE_ENV || "development"
+          } mode on port http://localhost:${PORT}`
+        );
+      });
 
-app.use("/", routes);
+      process.on("unhandledRejection", (err: Error) => {
+        console.error("💥 UNHANDLED REJECTION! Shutting down gracefully...");
+        console.error(err.name, err.message);
+        server.close(() => {
+          process.exit(1);
+        });
+      });
+    } catch (error) {
+      console.error("💥 Failed to start server:", error);
+      process.exit(1);
+    }
+  };
 
-const startServer = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  startServer();
+
+  process.on("uncaughtException", (err: Error) => {
+    console.error("💥 UNCAUGHT EXCEPTION! Shutting down immediately...");
+    console.error(err.name, err.message);
+    process.exit(1);
   });
-};
+}
 
-startServer();
+export default app;
